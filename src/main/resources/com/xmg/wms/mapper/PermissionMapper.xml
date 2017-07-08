@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xmg.wms.mapper.PermissionMapper">
+	<resultMap type="Permission" id="base_mapping">
+		<id property="id" column="id" />
+		<result property="name" column="name" />
+		<result property="expression" column="expression" />
+	</resultMap>
+	<insert id="save" useGeneratedKeys="true" keyColumn="id"
+		keyProperty="id">
+		insert into permission values(null,#{name},#{expression})
+	</insert>
+	<delete id="delete">
+		delete from permission where id = #{id}
+	</delete>
+	<delete id="batchDelete">
+		delete from permission where id in
+		<foreach collection="list" item="deleteId" open="(" separator="," close=")">
+			#{deleteId}
+		</foreach>
+	</delete>
+	<select id="list" resultMap="base_mapping">
+		select * from permission
+	</select>
+	<sql id="query_sql"></sql>
+	<select id="queryCount" resultType="long">
+		select count(1) from permission
+		<include refid="query_sql"></include>
+	</select>
+	<select id="queryList" resultMap="base_mapping">
+		select * from permission
+		<include refid="query_sql"></include>
+		limit #{beginIndex},#{pageSize}
+	</select>
+	<select id="getByRoleId" resultMap="base_mapping">
+		select p.* from permission p join role_permission rp on p.id = rp.permission_id where rp.role_id = #{id}
+	</select>
+	<delete id="deleteRelation">
+		delete from role_permission where permission_id = #{id}
+	</delete>
+</mapper>

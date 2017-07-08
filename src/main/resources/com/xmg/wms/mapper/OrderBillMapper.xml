@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xmg.wms.mapper.OrderBillMapper">
+    <resultMap id="Base_Mapping" type="com.xmg.wms.domain.OrderBill">
+        <id column="id" property="id"/>
+        <result column="sn" property="sn"/>
+        <result column="vdate" property="vdate"/>
+        <result column="status" property="status"/>
+        <result column="auditTime" property="auditTime"/>
+        <result column="inputTime" property="inputTime"/>
+        <result column="totalAmount" property="totalAmount"/>
+        <result column="totalNumber" property="totalNumber"/>
+        <!--对于关联关系,使用association,collection-->
+        <association property="inputUser" column="inputUser_id" javaType="Employee"
+                     select="com.xmg.wms.mapper.EmployeeMapper.get"></association>
+        <association property="auditor" column="auditor_id" javaType="Employee"
+                     select="com.xmg.wms.mapper.EmployeeMapper.get"></association>
+        <association property="supplier" column="supplier_id" javaType="Supplier"
+                     select="com.xmg.wms.mapper.SupplierMapper.get"></association>
+        <collection property="items" column="id" ofType="OrderBillItem"
+                    select="getItemsByBillId"></collection>
+    </resultMap>
+    <resultMap id="item_mapping" type="OrderBillItem">
+        <association property="product" column="product_id" javaType="Product"
+                     select="com.xmg.wms.mapper.ProductMapper.get"></association>
+        <association property="bill" column="bill_id" javaType="OrderBill"
+                     select="get"></association>
+    </resultMap>
+    <delete id="delete" parameterType="long">
+      delete from orderBill where id = #{id}
+    </delete>
+    <!--批量删除-->
+    <delete id="batchDelete">
+        delete from orderBill where id in
+        <foreach collection="list" item="deleteId" open="(" separator="," close=")">
+            #{deleteId}
+        </foreach>
+    </delete>
+    <!--根据订单id,删除列表清单中关联的项-->
+    <delete id="deleteItem">
+        delete from orderbillitem where bill_id = #{id}
+    </delete>
+    <insert id="save" parameterType="com.xmg.wms.domain.OrderBill" useGeneratedKeys="true" keyProperty="id">
+        insert into orderBill
+        (sn,
+        auditor_id,
+        vdate,
+        status,
+        auditTime,
+        inputTime,
+        totalAmount,
+        totalNumber,
+        inputUser_id,
+        supplier_id)
+            values
+        (#{sn},#{auditor.id},#{vdate},#{status},#{auditTime},#{inputTime},#{totalAmount},#{totalNumber},#{inputUser.id},#{supplier.id})
+    </insert>
+    <!--保存列表清单的方法-->
+    <insert id="saveItem">
+        insert into orderbillitem (costPrice,number,amount,remark,product_id,bill_id)
+        VALUES (#{costPrice},#{number},#{amount},#{remark},#{product.id},#{bill.id})
+    </insert>
+    <update id="update" parameterType="com.xmg.wms.domain.OrderBill">
+        update orderBill
+        set
+        sn=#{sn},
+        vdate=#{vdate},
+        totalAmount=#{totalAmount},
+        totalNumber=#{totalNumber},
+        supplier_id=#{supplier.id}        where id = #{id}
+    </update>
+    <!--订单审核的操作-->
+    <update id="audit">
+        UPDATE orderbill
+        SET
+        status=#{status},
+        auditTime=#{auditTime},
+        auditor_id=#{auditor.id}
+        where id=#{id}
+    </update>
+    <select id="get" resultMap="Base_Mapping" parameterType="long">
+        select * from orderBill where id = #{id}
+    </select>
+    <select id="list" resultMap="Base_Mapping">
+        select * from orderBill
+    </select>
+    <sql id="conditionSql">
+    <where>
+        <if test="beginDate!=null">
+            and vdate &gt;= #{beginDate}
+        </if>
+        <if test="endDate!=null">
+            and vdate &lt;= #{endDate}
+        </if>
+        <if test="supplierId!=null and supplierId>0">
+            and supplier_id=#{supplierId}
+        </if>
+        <if test="status >= 0">
+            and status=#{status}
+        </if>
+    </where>
+    </sql>
+    <select id="queryCount" resultType="long">
+        select count(*) from orderBill
+        <include refid="conditionSql"/>
+    </select>
+    <select id="queryList" resultMap="Base_Mapping">
+        select * from orderBill
+        <include refid="conditionSql"/>
+        limit #{beginIndex},#{pageSize}
+    </select>
+    <!--根据订单编号查询订单明细-->
+    <select id="getItemsByBillId" resultMap="item_mapping">
+        select * from orderbillitem where bill_id =#{id}
+    </select>
+</mapper>

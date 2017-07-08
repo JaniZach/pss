@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xmg.wms.mapper.SystemMenuMapper">
+    <resultMap id="BaseResultMap" type="com.xmg.wms.domain.SystemMenu">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="sn" property="sn"/>
+        <result column="url" property="url"/>
+        <association column="parent_id" property="parent" javaType="SystemMenu"
+                     select="get"></association>
+    </resultMap>
+    <delete id="delete" parameterType="long">
+    delete from systemMenu where id = #{id}
+  </delete>
+    <delete id="batchDelete">
+        delete from systemMenu where id in
+        <foreach collection="list" item="deleteId" open="(" separator="," close=")">
+            #{deleteId}
+        </foreach>
+    </delete>
+    <insert id="save" parameterType="com.xmg.wms.domain.SystemMenu" useGeneratedKeys="true" keyProperty="id">
+    insert into systemMenu 
+    (parent_id,sn,url,name)
+    values
+    (#{parent.id},#{sn},#{url},#{name})
+  </insert>
+    <update id="update" parameterType="com.xmg.wms.domain.SystemMenu">
+    update systemMenu
+    set
+	    parent_id=#{parent.id},
+	    sn=#{sn},
+	    url=#{url},
+	    name=#{name}
+    where id = #{id}
+  </update>
+    <select id="get" resultMap="BaseResultMap" parameterType="long">
+    select * from systemMenu where id = #{id}
+  </select>
+    <select id="list" resultMap="BaseResultMap">
+    select * from systemMenu
+  </select>
+    <sql id="conditionSql">
+        <where>
+            <choose>
+                <when test=" parentId > 0 ">
+                    and parent_id = #{parentId}
+                </when>
+                <otherwise>
+                    and parent_id is null
+                </otherwise>
+            </choose>
+        </where>
+    </sql>
+    <select id="queryCount" resultType="long">
+        select count(*) from systemMenu
+        <include refid="conditionSql"/>
+    </select>
+    <select id="queryList" resultMap="BaseResultMap">
+        select * from systemMenu
+        <include refid="conditionSql"/>
+        limit #{beginIndex},#{pageSize}
+    </select>
+    <select id="getByRoleId" resultMap="BaseResultMap">
+        select s.* from systemmenu s join role_menu rm on s.id = rm.menu_id where rm.role_id = #{id}
+    </select>
+    <!--根据父目录名查询全部子目录-->
+    <select id="queryMenusByParentSn" resultMap="BaseResultMap">
+        select * from systemmenu where parent_id = (
+          select id from systemmenu where sn = #{parentSn})
+    </select>
+    <!--根据父目录名和用户拥有的菜单权限查询全部子目录-->
+    <select id="queryMenusByParentSnAndPid" resultMap="BaseResultMap">
+        select distinct * from systemmenu where
+        parent_id =
+                /*根据pSn查询出parentId*/
+          (select id from systemmenu where sn = #{pSn})
+        and id in
+                /*查询角色拥有的菜单信息,获取菜单id*/
+          (select menu_id from role_menu rm join role r on r.id = rm.role_id
+              where r.id in (
+                /*查询员工的角色信息,获取角色id*/
+		        select role_id from employee_role er join employee e on er.employee_id = e.id where e.id = #{pId}
+              )
+          )
+    </select>
+    <!--保存角色和菜单的关系-->
+    <insert id="saveRelation">
+        insert into role_menu values(#{rid},#{mid})
+    </insert>
+</mapper>

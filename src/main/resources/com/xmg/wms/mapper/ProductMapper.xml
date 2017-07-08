@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xmg.wms.mapper.ProductMapper">
+    <resultMap id="Base_Mapping" type="com.xmg.wms.domain.Product">
+        <id column="id" property="id"/>
+        <result column="costPrice" property="costPrice"/>
+        <result column="sn" property="sn"/>
+        <result column="imagePath" property="imagePath"/>
+        <result column="name" property="name"/>
+        <result column="salePrice" property="salePrice"/>
+        <result column="intro" property="intro"/>
+        <association property="brand" column="brand_id" select="com.xmg.wms.mapper.BrandMapper.get"></association>
+    </resultMap>
+    <delete id="delete" parameterType="long">
+      delete from product where id = #{id}
+    </delete>
+    <!--批量删除-->
+    <delete id="batchDelete">
+        delete from product where id in
+        <foreach collection="list" item="deleteId" open="(" separator="," close=")">
+            #{deleteId}
+        </foreach>
+    </delete>
+    <insert id="save" parameterType="com.xmg.wms.domain.Product" useGeneratedKeys="true" keyProperty="id">
+        insert into product
+        (costPrice,
+        sn,
+        imagePath,
+        name,
+        brand_id,
+        salePrice,
+        intro)
+            values
+        (#{costPrice},#{sn},#{imagePath},#{name},#{brand.id},#{salePrice},#{intro})
+    </insert>
+    <update id="update" parameterType="com.xmg.wms.domain.Product">
+        update product
+        set
+        costPrice=#{costPrice},
+        sn=#{sn},
+        <if test="imagePath!=null and imagePath!=''">
+          imagePath=#{imagePath},
+        </if>
+        name=#{name},
+        brand_id=#{brand.id},
+        salePrice=#{salePrice},
+        intro=#{intro}        where id = #{id}
+    </update>
+    <select id="get" resultMap="Base_Mapping" parameterType="long">
+        select * from product where id = #{id}
+    </select>
+    <select id="list" resultMap="Base_Mapping">
+        select * from product
+    </select>
+    <sql id="conditionSql">
+    <where>
+        <if test="keyword!=null and keyword!=''">
+            and (name like concat('%',#{keyword},'%') or sn like concat('%',#{keyword},'%'))
+        </if>
+        <if test="brandId >0">
+            and brand_id =#{brandId}
+        </if>
+    </where>
+    </sql>
+    <select id="queryCount" resultType="long">
+        select count(*) from product
+        <include refid="conditionSql"/>
+    </select>
+    <select id="queryList" resultMap="Base_Mapping">
+        select * from product
+        <include refid="conditionSql"/>
+        limit #{beginIndex},#{pageSize}
+    </select>
+</mapper>

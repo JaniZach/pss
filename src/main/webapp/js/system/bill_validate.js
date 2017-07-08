@@ -1,0 +1,26 @@
+//对数量的要求
+$(function () {
+    console.debug($("#editForm"));
+    $("#editForm").validate({
+        rules:{
+            'stockIncomeBill.items[0].number':{
+                required:true,
+                number:true
+            },
+            'stockIncomeBill.items[1].number':{
+                required:true,
+                number:true
+            }
+        },
+        messages:{
+            'stockIncomeBill.items[0].number':{
+                required:"数量不能为空",
+                number:"必须为合法的数字"
+            },
+            'stockIncomeBill.items[1].number':{
+                required:"数量不能为空",
+                number:"必须为合法的数字"
+            }
+        }
+    });
+});

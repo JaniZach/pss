@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xmg.wms.mapper.DepartmentMapper">
+	<!--使用mybatis内置二级缓存-->
+	<!--1,所有的select都将被缓存
+	2,所有的insert,update,delete都会清空缓存
+	3,使用"最近很少使用"算法
+	4,缓存不会被设定的时间清空
+	5,每个缓存存储1024个对象
+	6,缓存线程安全
+	7,二级缓存不一定都是存在内存中,存储介质多种多样,因此要对缓存对象实现序列号接口-->
+	<!--<cache flushInterval="60000" eviction="FIFO" size="1024" readOnly="false"/>-->
+	<!--使用ehcache处理mybatis中的二级缓存-->
+	<cache type="org.mybatis.caches.ehcache.EhcacheCache"></cache>
+	<resultMap type="Department" id="base_mapping">
+		<result property="id" column="id" />
+		<result property="name" column="name" />
+		<result property="sn" column="sn" />
+	</resultMap>
+	<insert id="save" useGeneratedKeys="true" keyColumn="id"
+		keyProperty="id" flushCache="false">
+		insert into department values(null,#{name},#{sn})
+	</insert>
+	<delete id="delete">
+		delete from department where id = #{id}
+	</delete>
+	<delete id="batchDelete">
+		delete from department where id in
+		<foreach collection="list" item="deleteId" open="(" separator="," close=")">
+			#{deleteId}
+		</foreach>
+	</delete>
+	<update id="update">
+		update department
+		<set>
+			<if test="name!=null">
+				name=#{name},
+			</if>
+			<if test="sn!=null">
+				sn=#{sn},
+			</if>
+		</set>
+		where id =#{id}
+	</update>
+	<select id="get" resultMap="base_mapping">
+		select * from department where id = #{id}
+	</select>
+	<select id="list" resultMap="base_mapping">
+		select * from department
+	</select>
+	<sql id="query_sql"></sql>
+	<select id="queryCount" resultType="long" useCache="false">
+		select count(1) from department
+		<include refid="query_sql"></include>
+	</select>
+	<!--mybatis内置二级缓存: 默认是使用二级缓存,可以进行手动设置,关闭使用二级缓存useCache='false'-->
+	<!--mybatis内置二级缓存: 也可以设置刷新缓存,即执行此sql语句时,会刷新缓存flushCache='true'-->
+	<select id="queryList" resultMap="base_mapping" useCache="false">
+		select * from department
+		<include refid="query_sql"></include>
+		limit #{beginIndex},#{pageSize}
+	</select>
+</mapper>

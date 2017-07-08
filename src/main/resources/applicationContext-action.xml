@@ -1,0 +1,71 @@
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx" xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
+    <!-- 配置Action -->
+    <bean id="departmentAction" class="com.xmg.wms.web.action.DepartmentAction" scope="prototype">
+        <property name="deptService" ref="deptService"/>
+    </bean>
+    <bean id="employeeAction" class="com.xmg.wms.web.action.EmployeeAction" scope="prototype">
+        <property name="empService" ref="empService"/>
+        <property name="deptService" ref="deptService"/>
+        <property name="roleService" ref="roleService"/>
+    </bean>
+    <bean id="permissionAction" class="com.xmg.wms.web.action.PermissionAction" scope="prototype">
+        <property name="permissionService" ref="permissionService"/>
+    </bean>
+    <bean id="roleAction" class="com.xmg.wms.web.action.RoleAction" scope="prototype">
+        <property name="roleService" ref="roleService"/>
+        <property name="permissionService" ref="permissionService"/>
+        <property name="systemMenuService" ref="systemMenuService"/>
+    </bean>
+    <bean id="loginAction" class="com.xmg.wms.web.action.LoginAction" scope="prototype">
+        <property name="empService" ref="empService"/>
+    </bean>
+    <bean id="logoutAction" class="com.xmg.wms.web.action.LogoutAction" scope="prototype">
+    </bean>
+    <bean id="systemMenuAction" class="com.xmg.wms.web.action.SystemMenuAction" scope="prototype">
+        <property name="systemMenuService" ref="systemMenuService"/>
+    </bean>
+    <bean id="brandAction" class="com.xmg.wms.web.action.BrandAction" scope="prototype">
+        <property name="brandService" ref="brandService"/>
+    </bean>
+    <bean id="productAction" class="com.xmg.wms.web.action.ProductAction" scope="prototype">
+        <property name="productService" ref="productService"/>
+        <property name="brandService" ref="brandService"/>
+    </bean>
+    <bean id="supplierAction" class="com.xmg.wms.web.action.SupplierAction" scope="prototype">
+        <property name="supplierService" ref="supplierService"/>
+    </bean>
+    <bean id="orderBillAction" class="com.xmg.wms.web.action.OrderBillAction" scope="prototype">
+        <property name="orderBillService" ref="orderBillService"/>
+        <property name="supplierService" ref="supplierService"/>
+    </bean>
+    <bean id="depotAction" class="com.xmg.wms.web.action.DepotAction" scope="prototype">
+        <property name="depotService" ref="depotService"/>
+    </bean>
+    <bean id="stockIncomeBillAction" class="com.xmg.wms.web.action.StockIncomeBillAction" scope="prototype">
+        <property name="stockIncomeBillService" ref="stockIncomeBillService"/>
+        <property name="depotService" ref="depotService"/>
+    </bean>
+    <bean id="stockOutcomeBillAction" class="com.xmg.wms.web.action.StockOutcomeBillAction" scope="prototype">
+        <property name="stockOutcomeBillService" ref="stockOutcomeBillService"/>
+        <property name="depotService" ref="depotService"/>
+        <property name="clientService" ref="clientService"/>
+    </bean>
+    <bean id="productStockAction" class="com.xmg.wms.web.action.ProductStockAction" scope="prototype">
+        <property name="productStockService" ref="productStockService"/>
+        <property name="brandService" ref="brandService"/>
+        <property name="depotService" ref="depotService"/>
+    </bean>
+    <bean id="clientAction" class="com.xmg.wms.web.action.ClientAction" scope="prototype">
+        <property name="clientService" ref="clientService"/>
+    </bean>
+    <bean id="chartAction" class="com.xmg.wms.web.action.ChartAction" scope="prototype">
+        <property name="orderChartService" ref="orderChartService"/>
+        <property name="supplierService" ref="supplierService"/>
+        <property name="brandService" ref="brandService"/>
+        <property name="clientService" ref="clientService"/>
+        <property name="saleChartService" ref="saleChartService"/>
+    </bean>
+</beans>

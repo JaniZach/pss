@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xmg.wms.mapper.EmployeeMapper">
+	<resultMap type="Employee" id="base_mapping">
+		<result property="id" column="id" />
+		<result property="name" column="name" />
+		<result property="password" column="password" />
+		<result property="email" column="email" />
+		<result property="age" column="age" />
+		<result property="admin" column="admin" />
+		<association property="dept" javaType="Department">
+			<id column="did" property="id" />
+			<result column="dname" property="name" />
+		</association>
+		<collection property="roles" ofType="Role"
+		select="com.xmg.wms.mapper.RoleMapper.getByEmployeeId" column="id"></collection>
+	</resultMap>
+	<sql id="condition_sql">
+		<if test="keyword!=null and keyword != ''">
+			(e.name like concat('%',#{keyword},'%') or e.email like
+			concat('%',#{keyword},'%'))
+		</if>
+		<if test="deptId!=null and deptId != -1">
+			and e.dept_id = #{deptId}
+		</if>
+	</sql>
+	<sql id="query_sql">
+		e.*,d.id did,d.name dname
+	</sql>
+	<insert id="save" useGeneratedKeys="true" keyColumn="id"
+		keyProperty="id">
+		insert into Employee
+		values(null,#{name},#{password},#{email},#{age},#{admin},#{dept.id})
+	</insert>
+	<delete id="delete">
+		delete from Employee where id = #{id}
+	</delete>
+	<delete id="batchDelete">
+		delete from Employee where id in
+		<foreach collection="list" item="deleteId" open="(" separator="," close=")">
+			#{deleteId}
+		</foreach>
+	</delete>
+	<update id="update">
+		update Employee
+		<set>
+			<if test="name!=null">
+				name=#{name},
+			</if>
+			<if test="password!=null">
+				password=#{password},
+			</if>
+			<if test="email!=null">
+				email=#{email},
+			</if>
+			<if test="age!=null">
+				age=#{age},
+			</if>
+			<if test="admin!=null">
+				admin=#{admin},
+			</if>
+			<if test="dept!=null and dept.id!=-1">
+				dept_id=#{dept.id},
+			</if>
+		</set>
+		where id =#{id}
+	</update>
+	<select id="get" resultMap="base_mapping">
+		select <include refid="query_sql"/> from
+		Employee e left join Department d on e.dept_id = d.id where e.id =
+		#{id}
+	</select>
+	<select id="list" resultMap="base_mapping">
+		select <include refid="query_sql"/>
+		from
+		Employee e left join Department d on e.dept_id = d.id
+	</select>
+	<select id="queryList" resultMap="base_mapping">
+		select <include refid="query_sql"/> from
+		Employee e left join Department d
+		on e.dept_id = d.id
+		<where>
+			<include refid="condition_sql"/>
+		</where>
+		order by e.id limit #{beginIndex},#{pageSize}
+	</select>
+	<select id="queryCount" resultType="long">
+		select count(e.id) from
+		Employee e left join Department d on e.dept_id
+		= d.id
+		<where>
+			<include refid="condition_sql"/>
+		</where>
+	</select>
+	<update id="updateByRelation">
+		update employee set dept_id = null where dept_id =
+		#{dept_id}
+	</update>
+	<insert id="saveRelation">
+		insert into employee_role values (#{eid},#{rid})
+	</insert>
+	<delete id="deleteRelation">
+		delete from employee_role where employee_id = #{id}
+	</delete>
+	<select id="checkLogin" resultMap="base_mapping">
+		select * from employee where name = #{name} and password = #{password}
+	</select>
+</mapper>

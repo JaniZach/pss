@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xmg.wms.mapper.StockOutcomeBillMapper">
+    <resultMap id="Base_Mapping" type="com.xmg.wms.domain.StockOutcomeBill">
+        <id column="id" property="id"/>
+        <result column="sn" property="sn"/>
+        <result column="vdate" property="vdate"/>
+        <result column="status" property="status"/>
+        <result column="auditTime" property="auditTime"/>
+        <result column="inputTime" property="inputTime"/>
+        <result column="totalAmount" property="totalAmount"/>
+        <result column="totalNumber" property="totalNumber"/>
+        <!--关联关系orm-->
+        <association property="inputUser" column="inputUser_id" select="com.xmg.wms.mapper.EmployeeMapper.get"/>
+        <association property="auditor" column="auditor_id" select="com.xmg.wms.mapper.EmployeeMapper.get"/>
+        <association property="depot" column="depot_id" select="com.xmg.wms.mapper.DepotMapper.get"/>
+        <association property="client" column="client_id" select="com.xmg.wms.mapper.ClientMapper.get"/>
+        <collection property="items" column="id" select="getItemByBillId"/>
+    </resultMap>
+    <resultMap id="item_Mapping" type="StockOutcomeBillItem">
+        <association property="product" column="product_id" select="com.xmg.wms.mapper.ProductMapper.get"/>
+        <association property="bill" column="bill_id" select="get"/>
+    </resultMap>
+    <delete id="delete" parameterType="long">
+      delete from stockOutcomeBill where id = #{id}
+    </delete>
+    <!--批量删除-->
+    <delete id="batchDelete">
+        delete from stockOutcomeBill where id in
+        <foreach collection="list" item="deleteId" open="(" separator="," close=")">
+            #{deleteId}
+        </foreach>
+    </delete>
+    <!--根据入库单id,删除相关的清单-->
+    <delete id="deleteItem">
+        DELETE FROM stockoutcomebillitem WHERE bill_id=#{id}
+    </delete>
+    <insert id="save" parameterType="com.xmg.wms.domain.StockOutcomeBill" useGeneratedKeys="true" keyProperty="id">
+        insert into stockOutcomeBill
+        (sn,
+        auditor_id,
+        vdate,
+        status,
+        auditTime,
+        inputTime,
+        depot_id,
+        totalAmount,
+        totalNumber,
+        inputUser_id,
+        client_id)
+            values
+        (#{sn},#{auditor.id},#{vdate},#{status},#{auditTime},#{inputTime},#{depot.id},
+                #{totalAmount},#{totalNumber},#{inputUser.id},#{client.id})
+    </insert>
+    <!--保存列表清单的操作-->
+    <insert id="saveItem">
+        insert into stockoutcomebillitem (salePrice,number,amount,remark,product_id,bill_id)
+        VALUES (#{salePrice},#{number},#{amount},#{remark},#{product.id},#{bill.id})
+    </insert>
+    <!--编辑操作,无需编辑 录入人,录入时间,审核人,审核时间,审核状态,这几个在 audit 中进行更新-->
+    <update id="update" parameterType="com.xmg.wms.domain.StockOutcomeBill">
+        update stockOutcomeBill
+        set
+        sn=#{sn},
+        vdate=#{vdate},
+        depot_id=#{depot.id},
+        totalAmount=#{totalAmount},
+        totalNumber=#{totalNumber},
+        client_id=#{client.id}
+        where id =#{id}
+    </update>
+    <!--审核操作,此处更新 审核人,审核时间,审核状态 信息-->
+    <update id="audit">
+        UPDATE stockoutcomebill
+        SET
+        auditor_id=#{auditor.id},
+        auditTime=#{auditTime},
+        status=#{status}
+        where id =#{id}
+    </update>
+    <select id="get" resultMap="Base_Mapping" parameterType="long">
+        select * from stockOutcomeBill where id = #{id}
+    </select>
+    <select id="list" resultMap="Base_Mapping">
+        select * from stockOutcomeBill
+    </select>
+    <sql id="conditionSql">
+        <where>
+            <if test="beginDate!=null">
+                and vdate &gt;= #{beginDate}
+            </if>
+            <if test="endDate!=null">
+                and vdate &lt;= #{endDate}
+            </if>
+            <if test="clientId!=null and clientId>0">
+                and client_id=#{clientId}
+            </if>
+            <if test="depotId!=null and depotId>0">
+                and depot_id=#{depotId}
+            </if>
+            <if test="status >= 0">
+                and status=#{status}
+            </if>
+        </where>
+    </sql>
+    <select id="queryCount" resultType="long">
+        select count(*) from stockOutcomeBill
+        <include refid="conditionSql"/>
+    </select>
+    <select id="queryList" resultMap="Base_Mapping">
+        select * from stockOutcomeBill
+        <include refid="conditionSql"/>
+        limit #{beginIndex},#{pageSize}
+    </select>
+    <!--根据入库单id查询得到相关清单-->
+    <select id="getItemByBillId" resultMap="item_Mapping">
+        SELECT * FROM stockoutcomebillitem WHERE bill_id=#{id}
+    </select>
+</mapper>

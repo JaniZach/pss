@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xmg.wms.mapper.ClientMapper">
+    <resultMap id="Base_Mapping" type="com.xmg.wms.domain.Client">
+        <id column="id" property="id"/>
+        <result column="phone" property="phone"/>
+        <result column="sn" property="sn"/>
+        <result column="name" property="name"/>
+    </resultMap>
+    <delete id="delete" parameterType="long">
+      delete from client where id = #{id}
+    </delete>
+    <!--批量删除-->
+    <delete id="batchDelete">
+        delete from client where id in
+        <foreach collection="list" item="deleteId" open="(" separator="," close=")">
+            #{deleteId}
+        </foreach>
+    </delete>
+    <insert id="save" parameterType="com.xmg.wms.domain.Client" useGeneratedKeys="true" keyProperty="id">
+        insert into client
+        (phone,
+        sn,
+        name)
+            values
+        (#{phone},#{sn},#{name})
+    </insert>
+    <update id="update" parameterType="com.xmg.wms.domain.Client">
+        update client
+        set
+        phone=#{phone},
+        sn=#{sn},
+        name=#{name}        where id = #{id}
+    </update>
+    <select id="get" resultMap="Base_Mapping" parameterType="long">
+        select * from client where id = #{id}
+    </select>
+    <select id="list" resultMap="Base_Mapping">
+        select * from client
+    </select>
+    <sql id="conditionSql">
+    <where>
+    </where>
+    </sql>
+    <select id="queryCount" resultType="long">
+        select count(*) from client
+        <include refid="conditionSql"/>
+    </select>
+    <select id="queryList" resultMap="Base_Mapping">
+        select * from client
+        <include refid="conditionSql"/>
+        limit #{beginIndex},#{pageSize}
+    </select>
+</mapper>

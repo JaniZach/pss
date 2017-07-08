@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xmg.wms.mapper.RoleMapper">
+	<resultMap type="Role" id="base_mapping">
+		<id property="id" column="id" />
+		<result property="name" column="name" />
+		<result property="sn" column="sn" />
+		<collection property="permissions" column="id"
+			select="com.xmg.wms.mapper.PermissionMapper.getByRoleId" ofType="Permission">
+		</collection>
+		<collection property="menus" column="id"
+					select="com.xmg.wms.mapper.SystemMenuMapper.getByRoleId" ofType="SystemMenu">
+		</collection>
+	</resultMap>
+	<resultMap type="Role" id="list_mapping">
+		<id property="id" column="id" />
+		<result property="name" column="name" />
+		<result property="sn" column="sn" />
+		<collection property="permissions" ofType="Permission">
+			<id property="id" column="pid" />
+			<result property="name" column="pname" />
+			<result property="expression" column="expression" />
+		</collection>
+	</resultMap>
+	<insert id="save" useGeneratedKeys="true" keyColumn="id"
+		keyProperty="id">
+		insert into role values(null,#{name},#{sn})
+	</insert>
+	<delete id="delete">
+		delete from role where id = #{id}
+	</delete>
+	<!--批量删除-->
+	<delete id="batchDelete">
+		delete from role where id in
+		<foreach collection="list" item="deleteId" open="(" separator="," close=")">
+			#{deleteId}
+		</foreach>
+	</delete>
+	<update id="update">
+		update role
+		<set>
+			<if test="name!=null">
+				name=#{name},
+			</if>
+			<if test="sn!=null">
+				sn=#{sn},
+			</if>
+		</set>
+		where id = #{id}
+	</update>
+	<select id="get" resultMap="base_mapping">
+		select * from role where id = #{id}
+	</select>
+	<select id="list" resultMap="list_mapping">
+		select r.*,p.id pid,p.name pname,expression from role r left join role_permission rp on r.id=rp.role_id
+		left join permission p on rp.permission_id = p.id
+	</select>
+	<select id="queryCount" resultType="long">
+		select count(1) from role
+	</select>
+	<select id="queryList" resultMap="base_mapping">
+		select * from role limit
+		#{beginIndex},#{pageSize}
+	</select>
+	<insert id="saveRelation">
+		insert into role_permission values(#{rid},#{pid})
+	</insert>
+	<!--删除角色和权限的关系-->
+	<delete id="deletePermissionRelation">
+		delete from role_permission where role_id = #{id}
+	</delete>
+	<!--删除角色和权限的关系-->
+	<delete id="deleteMenuRelation">
+		delete from role_menu where role_id = #{id}
+	</delete>
+	<select id="getByEmployeeId" resultMap="base_mapping">
+		select r.* from role r
+		join employee_role er on r.id = er.role_id where er.employee_id =
+		#{id}
+	</select>
+</mapper>

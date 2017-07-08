@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+	"-//Apache Software Foundation//DTD Struts Configuration 2.3//EN"
+	"http://struts.apache.org/dtds/struts-2.3.dtd">
+<struts>
+    <constant name="struts.devMode" value="true" />
+    <constant name="struts.ui.theme" value="simple" />
+    
+    <package name="deptPkg" extends="struts-default" namespace="/">
+		<!--配置拦截器-->
+    	<interceptors>
+    		<interceptor name="checkLogin" class="com.xmg.wms.web.interceptor.CheckLoginInterceptor"/>
+    		<interceptor name="security" class="com.xmg.wms.web.interceptor.SecurityInterceptor"></interceptor>
+			<interceptor-stack name="myStack">
+				<interceptor-ref name="store">
+					<!--配置store拦截器,用于在不同请求对象之间传递信息-->
+					<!--只有在AUTOMATIC时候在可以将信息保存到session中并且在使用一次后移除-->
+					<!--此处不可以写STORE,因为STORE是将信息存在session中但是没有取出-->
+					<param name="operationMode">AUTOMATIC</param>
+				</interceptor-ref>
+    			<!--<interceptor-ref name="checkLogin"/>
+    			<interceptor-ref name="security"/>-->
+    			<interceptor-ref name="defaultStack"/>
+				<interceptor-ref name="checkLogin"/>
+				<interceptor-ref name="security"/>
+    		</interceptor-stack>
+    	</interceptors>
+    	<default-interceptor-ref name="myStack"/>
+		<!--配置全局result-->
+    	<global-results>
+    		<result name="login">/login.jsp</result>
+    		<result name="refuse">/WEB-INF/views/common/nopermission.jsp</result>
+			<!--<result name="error">/WEB-INF/views/commons/error.jsp</result>-->
+    	</global-results>
+		<!--配置全局异常处理-->
+		<!--<global-exception-mappings>
+			<exception-mapping exception="java.lang.Exception" result="error"/>
+		</global-exception-mappings>-->
+		<!--配置Action-->
+		<action name="systemMenu_*" class="systemMenuAction" method="{1}">
+			<result name="list">/WEB-INF/views/systemMenu/list.jsp</result>
+			<result name="input">/WEB-INF/views/systemMenu/input.jsp</result>
+			<!--此处result提示的错误忽略-->
+			<result type="redirectAction">
+				<param name="actionName">systemMenu</param>
+				<param name="qo.parentId">${qo.parentId}</param>
+			</result>
+		</action>
+		<action name="login" class="loginAction">
+			<interceptor-ref name="defaultStack"/>
+			<result name="input">/login.jsp</result>
+			<result type="redirectAction">main</result>
+		</action>
+    	<action name="*_*" class="{1}Action" method="{2}">
+    		<result name="list">/WEB-INF/views/{1}/list.jsp</result>
+    		<result name="input">/WEB-INF/views/{1}/input.jsp</result>
+    		<result type="redirectAction">{1}</result>
+			<result name="{2}">
+				/WEB-INF/views/{1}/{2}.jsp
+			</result>
+    	</action>
+
+    	<!-- 解决地址栏没改变,再次刷新导致进入登陆界面的问题 -->
+    	<action name="main">
+    		<result>/WEB-INF/views/main.jsp</result>
+    	</action>
+    </package>
+</struts>

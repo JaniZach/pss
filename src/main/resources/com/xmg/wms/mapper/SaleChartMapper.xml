@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xmg.wms.mapper.SaleChartMapper" >
+  <sql id="conditionSql">
+  	<where>
+        <if test="beginDate!=null">
+            and sa.vdate &gt;=#{beginDate}
+        </if>
+        <if test="endDate!=null">
+            and sa.vdate &lt;=#{endDate}
+        </if>
+        <if test="keyword!=null and keyword!=''">
+            and p.name like concat('%',#{keyword},'%')
+        </if>
+        <if test="clientId>0">
+            and c.id=#{clientId}
+        </if>
+        <if test="brandId>0">
+            and b.id=#{brandId}
+        </if>
+  	</where>
+  </sql>
+    <!--注意:在select,group by后面使用$取值较好-->
+    <!--#与$的区别:#可用防止sql注入,而$只是简单的取值替换占位符-->
+  <select id="querySaleChart" resultType="com.xmg.wms.VO.SaleChartVO">
+  	SELECT ${groupType} groupType,
+      SUM(sa.number) totalNumber,
+      SUM(sa.saleAmount) totalAmount,
+      SUM(sa.saleamount-sa.costamount) grossProfit
+    FROM saleaccount sa LEFT JOIN product p on sa.product_id=p.id
+    LEFT JOIN client c on sa.client_id=c.id
+    LEFT JOIN brand b on p.brand_id=b.id
+    LEFT JOIN employee e on sa.saleman_id=e.id
+    <include refid="conditionSql"/>
+    GROUP BY ${groupType}
+  </select>
+</mapper>

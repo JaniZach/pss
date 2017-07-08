@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+	<!-- 开启延迟加载,并设置相关参数 -->
+	<settings>
+		<!--二级缓存的使用,默认为true,开启的(可不写)-->
+		<!--<setting name="cacheEnabled" value="true"/>-->
+		<!--开启全局延迟加载,此处应设置为true-->
+		<setting name="lazyLoadingEnabled" value="true"/>
+		 <!--当true时,有延迟加载属性的对象被调用时,会完全加载;为false,则按需加载;此处应设置为false-->
+		<setting name="aggressiveLazyLoading" value="false"/>
+		 <!--解决调用Object的部分方法时,完全加载的问题:表示哪些方法触发延迟加载-->
+		<setting name="lazyLoadTriggerMethods" value="clone"/>
+	</settings>
+</configuration>

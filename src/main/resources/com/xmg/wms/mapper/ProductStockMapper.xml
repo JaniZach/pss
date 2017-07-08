@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xmg.wms.mapper.ProductStockMapper">
+    <resultMap id="Base_Mapping" type="com.xmg.wms.domain.ProductStock">
+        <id column="ps_id" property="id"/>
+        <result column="ps_amount" property="amount"/>
+        <result column="ps_storeNumber" property="storeNumber"/>
+        <result column="ps_price" property="price"/>
+        <!--设置关联关系orm-->
+        <association property="product" javaType="Product">
+            <id property="id" column="p_id"/>
+            <result property="name" column="p_name"/>
+            <result property="sn" column="p_sn"/>
+            <association property="brand" javaType="Brand">
+                <id property="id" column="b_id"/>
+                <result property="name" column="b_name"/>
+            </association>
+        </association>
+        <association property="depot" javaType="Depot">
+            <id property="id" column="d_id"/>
+            <result property="name" column="d_name"/>
+        </association>
+    </resultMap>
+    <insert id="save" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        insert into productstock (price,storeNumber,amount,product_id,depot_id)
+        values (#{price},#{storeNumber},#{amount},#{product.id},#{depot.id})
+    </insert>
+    <update id="update">
+        UPDATE productstock
+        SET
+        price=#{price},
+        storeNumber=#{storeNumber},
+        amount=#{amount},
+        product_id=#{product.id},
+        depot_id=#{depot.id}
+        where id=#{id}
+    </update>
+    <!--即时库存报表相关的sql-->
+    <sql id="select_chart">
+        select ps.id ps_id,p.id p_id,p.sn p_sn,p.name p_name,d.id d_id,d.name d_name,b.id b_id,b.name b_name,ps.price ps_price
+        ,ps.storeNumber ps_storeNumber,ps.amount ps_amount
+    </sql>
+    <sql id="from_chart">
+        FROM productstock ps LEFT JOIN product p on ps.product_id=p.id
+        LEFT JOIN depot d on ps.depot_id=d.id
+        LEFT JOIN brand b on p.brand_id=b.id
+    </sql>
+    <select id="get" resultMap="Base_Mapping" parameterType="long">
+        <include refid="select_chart"/>
+        <include refid="from_chart"/>
+        where ps.id=#{id}
+    </select>
+    <select id="list" resultMap="Base_Mapping">
+        <include refid="select_chart"/>
+        <include refid="from_chart"/>
+    </select>
+    <sql id="conditionSql">
+        <where>
+            <if test="keyword!=null and keyword!=''">
+                and ( p.sn like concat('%',#{keyword},'%') or p.name like concat('%',#{keyword},'%') )
+            </if>
+            <if test="depotId>0">
+                and d.id=#{depotId}
+            </if>
+            <if test="brandId>0">
+                and b.id=#{brandId}
+            </if>
+            <if test="limitNum!=null">
+                and ps.storeNumber &lt;=#{limitNum}
+            </if>
+        </where>
+    </sql>
+    <select id="queryCount" resultType="long">
+        select count(*)
+        <include refid="from_chart"/>
+        <include refid="conditionSql"/>
+    </select>
+    <select id="queryList" resultMap="Base_Mapping">
+        <include refid="select_chart"/>
+        <include refid="from_chart"/>
+        <include refid="conditionSql"/>
+        limit #{beginIndex},#{pageSize}
+    </select>
+    <!--根据仓库id和产品id查询库存信息-->
+    <select id="queryByDepotIdAndProductId" resultMap="Base_Mapping">
+         <include refid="select_chart"/>
+        <include refid="from_chart"/>
+        where d.id=#{depotId} and p.id=#{productId}
+    </select>
+</mapper>
