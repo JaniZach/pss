@@ -7,7 +7,7 @@
   <version>1.0</version>
   <name>wms Maven Webapp</name>
   <url>http://maven.apache.org</url>
-  <!-- 开发者信息: -->
+  <!-- 开发者的信息: -->
   <developers>
     <developer>
       <id>Will</id>
